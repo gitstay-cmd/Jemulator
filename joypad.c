@@ -54,7 +54,6 @@ BYTE GetJoyPadState(void *mmu){
     joypad *joy = ((MMU*)mmu)->joy;
     BYTE res = ((MMU*)mmu)->_rom[0xFF00];
     res &= 0xF0;
-	printf("Res: %x\n", res);
     if(!(res & (1 <<5))){
         BYTE topJoyPad = (joy->status>> 4) & 0x0F;
         res |= topJoyPad;

@@ -478,9 +478,6 @@ int loadi_hl_a(CPU *cpu) {
 int load_n_a(CPU *cpu){
     BYTE n = read_byte(cpu->mmu, cpu->PC.val);
     cpu->PC.val += 1;
-    if(n == 0xE1){
-        printf("Hold spot\n");
-    }
     write_byte(cpu->mmu, (SHORT)(0xFF00 + n), cpu->AF.hi);
     return 12;
 }
@@ -488,9 +485,6 @@ int load_n_a(CPU *cpu){
 int load_a_np(CPU *cpu){
     BYTE n = read_byte(cpu->mmu, cpu->PC.val);
     cpu->PC.val += 1;
-    if(n == 0xE1){
-        printf("Hold it here\n");
-    }
     cpu->AF.hi = read_byte(cpu->mmu, (SHORT)(0xFF00 + n));
     return 12;
 }
@@ -1335,7 +1329,7 @@ void and(CPU *cpu, BYTE value){
     cpu->AF.lo &= ~CARRY;
     cpu->AF.lo |= HALFC;
     cpu->AF.hi &= value;
-    if(!cpu->AF.lo){
+    if(!cpu->AF.hi){
         cpu->AF.lo |= ZERO;
     }else{
         cpu->AF.lo &= ~ZERO;
@@ -1384,47 +1378,46 @@ int and_nn(CPU *cpu){
 }
 
 void or(CPU *cpu, BYTE value){
-    cpu->AF.hi &= ~OPER;
-    cpu->AF.hi &= ~CARRY;
-    cpu->AF.hi &= ~HALFC;
-    cpu->AF.lo |= value;
-    if(!cpu->AF.lo){
-        cpu->AF.hi |= ZERO;
+    cpu->AF.lo &= ~OPER;
+    cpu->AF.lo &= ~CARRY;
+    cpu->AF.lo &= ~HALFC;
+    cpu->AF.hi |= value;
+    if(!cpu->AF.hi){
+        cpu->AF.lo |= ZERO;
     }else{
-        cpu->AF.hi &= ~ZERO;
+        cpu->AF.lo &= ~ZERO;
     }
 }
 
 int or_a(CPU *cpu){
-    or(cpu, cpu->AF.lo);
+    or(cpu, cpu->AF.hi);
     return 4;
 }
 
 int or_b(CPU *cpu){
-    or(cpu, cpu->BC.lo);
-    return 4;
-}
-int or_c(CPU *cpu){
     or(cpu, cpu->BC.hi);
     return 4;
 }
-int or_d(CPU *cpu){
-    or(cpu, cpu->DE.lo);
+int or_c(CPU *cpu){
+    or(cpu, cpu->BC.lo);
     return 4;
 }
-int or_e(CPU *cpu){
+int or_d(CPU *cpu){
     or(cpu, cpu->DE.hi);
     return 4;
 }
-int or_h(CPU *cpu){
-    or(cpu, cpu->HL.lo);
+int or_e(CPU *cpu){
+    or(cpu, cpu->DE.lo);
     return 4;
 }
-int or_l(CPU *cpu){
+int or_h(CPU *cpu){
     or(cpu, cpu->HL.hi);
     return 4;
 }
-//Stop here for now
+int or_l(CPU *cpu){
+    or(cpu, cpu->HL.lo);
+    return 4;
+}
 int or_hl(CPU *cpu){
     or(cpu, read_byte(cpu->mmu, cpu->HL.val));
     return 8;
@@ -1437,44 +1430,44 @@ int or_nn(CPU *cpu){
 }
 
 void xor(CPU *cpu, BYTE value){
-    cpu->AF.hi &= ~OPER;
-    cpu->AF.hi &= ~CARRY;
-    cpu->AF.hi &= ~HALFC;
-    cpu->AF.lo ^= value;
-    if(!cpu->AF.lo){
-        cpu->AF.hi |= ZERO;
+    cpu->AF.lo &= ~OPER;
+    cpu->AF.lo &= ~CARRY;
+    cpu->AF.lo &= ~HALFC;
+    cpu->AF.hi ^= value;
+    if(!cpu->AF.hi){
+        cpu->AF.lo |= ZERO;
     }else{
-        cpu->AF.hi &= ~ZERO;
+        cpu->AF.lo &= ~ZERO;
     }
 }
 
 int xor_a(CPU *cpu){
-    xor(cpu, cpu->AF.lo);
+    xor(cpu, cpu->AF.hi);
     return 4;
 }
 
 int xor_b(CPU *cpu){
-    xor(cpu, cpu->BC.lo);
-    return 4;
-}
-int xor_c(CPU *cpu){
     xor(cpu, cpu->BC.hi);
     return 4;
 }
-int xor_d(CPU *cpu){
-    xor(cpu, cpu->DE.lo);
+int xor_c(CPU *cpu){
+    xor(cpu, cpu->BC.lo);
     return 4;
 }
-int xor_e(CPU *cpu){
+int xor_d(CPU *cpu){
     xor(cpu, cpu->DE.hi);
     return 4;
 }
+int xor_e(CPU *cpu){
+    xor(cpu, cpu->DE.lo);
+    return 4;
+}
 int xor_h(CPU *cpu){
-    xor(cpu, cpu->HL.lo);
+    xor(cpu, cpu->HL.hi);
     return 4;
 }
 int xor_l(CPU *cpu){
-    xor(cpu, cpu->HL.hi);
+    xor(cpu, cpu->HL.lo);
     return 4;
 }
 
@@ -1491,46 +1484,46 @@ int xor_nn(CPU *cpu) {
 
 void inc(CPU *cpu, BYTE *val){
     if((*val & 0x0f) == 0x0f){
-        cpu->AF.hi |= HALFC;
+        cpu->AF.lo |= HALFC;
     }else {
-        cpu->AF.hi &= ~HALFC;
+        cpu->AF.lo &= ~HALFC;
     }
     *val += 1;
-    cpu->AF.hi &= ~OPER;
+    cpu->AF.lo &= ~OPER;
     if(!*val){
-        cpu->AF.hi |= ZERO;
+        cpu->AF.lo |= ZERO;
     }else {
-        cpu->AF.hi &= ~ZERO;
+        cpu->AF.lo &= ~ZERO;
     }
 }
 
 int inc_a(CPU *cpu){
-    inc(cpu, &cpu->AF.lo);
+    inc(cpu, &cpu->AF.hi);
     return 4;
 }
 
 int inc_b(CPU *cpu){
-    inc(cpu, &cpu->BC.lo);
-    return 4;
-}
-int inc_c(CPU *cpu){
     inc(cpu, &cpu->BC.hi);
     return 4;
 }
-int inc_d(CPU *cpu){
-    inc(cpu, &cpu->DE.lo);
+int inc_c(CPU *cpu){
+    inc(cpu, &cpu->BC.lo);
     return 4;
 }
-int inc_e(CPU *cpu){
+int inc_d(CPU *cpu){
     inc(cpu, &cpu->DE.hi);
     return 4;
 }
+int inc_e(CPU *cpu){
+    inc(cpu, &cpu->DE.lo);
+    return 4;
+}
 int inc_h(CPU *cpu){
-    inc(cpu, &cpu->HL.lo);
+    inc(cpu, &cpu->HL.hi);
     return 4;
 }
 int inc_l(CPU *cpu){
-    inc(cpu, &cpu->HL.hi);
+    inc(cpu, &cpu->HL.lo);
     return 4;
 }
 
@@ -1543,46 +1536,46 @@ int inc_hlp(CPU *cpu){
 
 void dec(CPU *cpu, BYTE *val){
     if((*val & 0x0f)){
-        cpu->AF.hi &= ~HALFC;
+        cpu->AF.lo &= ~HALFC;
     }else {
-        cpu->AF.hi |= HALFC;
+        cpu->AF.lo |= HALFC;
     }
     *val -= 1;
-    cpu->AF.hi |= OPER;
+    cpu->AF.lo |= OPER;
     if(*val == 0){
-        cpu->AF.hi |= ZERO;
+        cpu->AF.lo |= ZERO;
     }else {
-        cpu->AF.hi &= ~ZERO;
+        cpu->AF.lo &= ~ZERO;
     }
 }
 
 int dec_a(CPU *cpu){
-    dec(cpu, &cpu->AF.lo);
+    dec(cpu, &cpu->AF.hi);
     return 4;
 }
 
 int dec_b(CPU *cpu){
-    dec(cpu, &cpu->BC.lo);
-    return 4;
-}
-int dec_c(CPU *cpu){
     dec(cpu, &cpu->BC.hi);
     return 4;
 }
-int dec_d(CPU *cpu){
-    dec(cpu, &cpu->DE.lo);
+int dec_c(CPU *cpu){
+    dec(cpu, &cpu->BC.lo);
     return 4;
 }
-int dec_e(CPU *cpu){
+int dec_d(CPU *cpu){
     dec(cpu, &cpu->DE.hi);
     return 4;
 }
+int dec_e(CPU *cpu){
+    dec(cpu, &cpu->DE.lo);
+    return 4;
+}
 int dec_h(CPU *cpu){
-    dec(cpu, &cpu->HL.lo);
+    dec(cpu, &cpu->HL.hi);
     return 4;
 }
 int dec_l(CPU *cpu){
-    dec(cpu, &cpu->HL.hi);
+    dec(cpu, &cpu->HL.lo);
     return 4;
 }
 
@@ -1596,19 +1589,19 @@ int dec_hlp(CPU *cpu){
 void add16(CPU *cpu, register_u *AF, register_u *BC){
     int sum = AF->val + BC->val;
     if(sum & 0xffff0000){
-        cpu->AF.hi |= CARRY;
+        cpu->AF.lo |= CARRY;
     }else {
-        cpu->AF.hi &= ~CARRY;
+        cpu->AF.lo &= ~CARRY;
     }
 
     AF->val = (SHORT)(sum & 0xffff);
     if(((AF->val & 0x0F) + (BC->val & 0x0f)) > 0x0f){
-        cpu->AF.hi |= HALFC;
+        cpu->AF.lo |= HALFC;
     }else {
-        cpu->AF.hi &= ~HALFC;
+        cpu->AF.lo &= ~HALFC;
     }
 
-    cpu->AF.hi &= ~OPER;
+    cpu->AF.lo &= ~OPER;
 }
 
 int add_hl_bc(CPU *cpu){
@@ -1632,66 +1625,66 @@ int add_hl_sp(CPU *cpu){
 }
 
 int add_sp_n(CPU *cpu){
-    cpu->AF.hi &= ~ZERO;
-    cpu->AF.hi &= ~OPER;
+    cpu->AF.lo &= ~ZERO;
+    cpu->AF.lo &= ~OPER;
     BYTE val = read_byte(cpu->mmu, cpu->PC.val);
     cpu->PC.val += 1;
     if(((cpu->SP.val & 0x0f) + (val & 0x0f)) > 0x0f){
-        cpu->AF.hi |= HALFC;
+        cpu->AF.lo |= HALFC;
     }else{
-        cpu->AF.hi &= ~HALFC;
+        cpu->AF.lo &= ~HALFC;
     }
     int sum = cpu->SP.val + val;
     if((sum & 0xFFFF0000)){
-        cpu->AF.hi |= CARRY;
+        cpu->AF.lo |= CARRY;
     }else {
-        cpu->AF.hi &= ~CARRY;
+        cpu->AF.lo &= ~CARRY;
     }
     cpu->SP.val = (SHORT)(sum & 0xFFFF);
     return 16;
 }
 
 void swap(CPU *cpu, BYTE *val){
-    cpu->AF.hi &= ~OPER;
-    cpu->AF.hi &= ~HALFC;
-    cpu->AF.hi &= ~CARRY;
+    cpu->AF.lo &= ~OPER;
+    cpu->AF.lo &= ~HALFC;
+    cpu->AF.lo &= ~CARRY;
     BYTE hold = (*val >> 4);
     hold |= (*val << 4);
     if(!hold){
-        cpu->AF.hi |= ZERO;
+        cpu->AF.lo |= ZERO;
     }else{
-        cpu->AF.hi &= ~ZERO;
+        cpu->AF.lo &= ~ZERO;
     }
     *val = hold;
 }
 
 int swap_a(CPU *cpu){
-    swap(cpu, &cpu->AF.lo);
+    swap(cpu, &cpu->AF.hi);
     return 8;
 }
 
 int swap_b(CPU *cpu){
-    swap(cpu, &cpu->BC.lo);
-    return 8;
-}
-int swap_c(CPU *cpu){
     swap(cpu, &cpu->BC.hi);
     return 8;
 }
-int swap_d(CPU *cpu){
-    swap(cpu, &cpu->DE.lo);
+int swap_c(CPU *cpu){
+    swap(cpu, &cpu->BC.lo);
     return 8;
 }
-int swap_e(CPU *cpu){
+int swap_d(CPU *cpu){
     swap(cpu, &cpu->DE.hi);
     return 8;
 }
+int swap_e(CPU *cpu){
+    swap(cpu, &cpu->DE.lo);
+    return 8;
+}
 int swap_h(CPU *cpu){
-    swap(cpu, &cpu->HL.lo);
+    swap(cpu, &cpu->HL.hi);
     return 8;
 }
 int swap_l(CPU *cpu){
-    swap(cpu, &cpu->HL.hi);
+    swap(cpu, &cpu->HL.lo);
     return 8;
 }
 
@@ -1706,7 +1699,7 @@ int daa(CPU *cpu) {
 
 
     {
-        unsigned short s = cpu->AF.lo;
+        unsigned short s = cpu->AF.hi;
 
         if(is_O(cpu->AF)) {
             if(is_H(cpu->AF)) s = (s - 0x06)&0xFF;
@@ -1717,13 +1710,13 @@ int daa(CPU *cpu) {
             if(is_H(cpu->AF) || s > 0x9F) s += 0x60;
         }
 
-        cpu->AF.lo = s;
-        cpu->AF.hi &= ~HALFC;
+        cpu->AF.hi = s;
+        cpu->AF.lo &= ~HALFC;
 
-        if(cpu->AF.lo) cpu->AF.hi &= ~ZERO;
-        else cpu->AF.hi |= ZERO;
+        if(cpu->AF.hi) cpu->AF.lo &= ~ZERO;
+        else cpu->AF.lo |= ZERO;
 
-        if(s >= 0x100) cpu->AF.hi |= CARRY;
+        if(s >= 0x100) cpu->AF.lo |= CARRY;
     }
     return 4;
 
@@ -1731,21 +1724,21 @@ int daa(CPU *cpu) {
 
 int cpl(CPU *cpu){
 
-    cpu->AF.lo ^= 0xFF;
-    cpu->AF.hi |= HALFC;
-    cpu->AF.hi |= OPER;
+    cpu->AF.hi ^= 0xFF;
+    cpu->AF.lo |= HALFC;
+    cpu->AF.lo |= OPER;
     return 4;
 }
 
 int ccf(CPU *cpu){
-    cpu->AF.hi &= ~(OPER | HALFC);
-    cpu->AF.hi ^= CARRY;
+    cpu->AF.lo &= ~(OPER | HALFC);
+    cpu->AF.lo ^= CARRY;
     return 4;
 }
 
 int scf(CPU *cpu){
-    cpu->AF.hi &= ~(OPER| HALFC);
-    cpu->AF.hi |= CARRY;
+    cpu->AF.lo &= ~(OPER| HALFC);
+    cpu->AF.lo |= CARRY;
     return 4;
 }
 
@@ -1769,80 +1762,80 @@ int ei(CPU *cpu){
 }
 
 int rlca(CPU *cpu) {
-    BYTE carry = (BYTE)(cpu->AF.lo & 0x80) >> 7;
-    if(carry) cpu->AF.hi |= CARRY;
-    else cpu->AF.hi &= ~CARRY;
+    BYTE carry = (BYTE)(cpu->AF.hi & 0x80) >> 7;
+    if(carry) cpu->AF.lo |= CARRY;
+    else cpu->AF.lo &= ~CARRY;
 
-    cpu->AF.lo <<= 1;
-    cpu->AF.lo += carry;
+    cpu->AF.hi <<= 1;
+    cpu->AF.hi += carry;
 
-    cpu->AF.hi &= ~(OPER | ZERO | HALFC);
+    cpu->AF.lo &= ~(OPER | ZERO | HALFC);
     return 4;
 }
 
 int rla(CPU *cpu) {
     int carry = is_C(cpu->AF);
 
-    if(cpu->AF.lo & 0x80) cpu->AF.hi |= ~(CARRY);
-    else cpu->AF.hi &= ~CARRY;
+    if(cpu->AF.hi & 0x80) cpu->AF.lo |= ~(CARRY);
+    else cpu->AF.lo &= ~CARRY;
 
-    cpu->AF.lo <<= 1;
-    cpu->AF.lo += carry;
+    cpu->AF.hi <<= 1;
+    cpu->AF.hi += carry;
 
-    cpu->AF.hi &= ~(OPER | ZERO | HALFC);
+    cpu->AF.lo &= ~(OPER | ZERO | HALFC);
     return 4;
 }
 
 int rrca(CPU *cpu) {
-    unsigned char carry = cpu->AF.lo & 0x01;
-    if(carry) cpu->AF.hi |= (CARRY);
-    else cpu->AF.hi &= (CARRY);
+    unsigned char carry = cpu->AF.hi & 0x01;
+    if(carry) cpu->AF.lo |= (CARRY);
+    else cpu->AF.lo &= (CARRY);
 
-    cpu->AF.lo >>= 1;
-    if(carry) cpu->AF.lo |= 0x80;
+    cpu->AF.hi >>= 1;
+    if(carry) cpu->AF.hi |= 0x80;
 
-    cpu->AF.hi &= ~(OPER | ZERO | HALFC);
+    cpu->AF.lo &= ~(OPER | ZERO | HALFC);
     return 4;
 }
 
 void rrc(CPU *cpu, BYTE *value){
     unsigned char carry = *value & 0x01;
-    if(carry) cpu->AF.hi |= (CARRY);
-    else cpu->AF.hi &= (CARRY);
+    if(carry) cpu->AF.lo |= (CARRY);
+    else cpu->AF.lo &= (CARRY);
 
     *value >>= 1;
     if(carry) *value |= 0x80;
 
-    cpu->AF.hi &= ~(OPER | ZERO | HALFC);
+    cpu->AF.lo &= ~(OPER | ZERO | HALFC);
 }
 
 int rrc_a(CPU *cpu){
-    rrc(cpu, &cpu->AF.lo);
+    rrc(cpu, &cpu->AF.hi);
     return 8;
 }
 
 int rrc_b(CPU *cpu){
-    rrc(cpu, &cpu->BC.lo);
-    return 8;
-}
-int rrc_c(CPU *cpu){
     rrc(cpu, &cpu->BC.hi);
     return 8;
 }
-int rrc_d(CPU *cpu){
-    rrc(cpu, &cpu->DE.lo);
+int rrc_c(CPU *cpu){
+    rrc(cpu, &cpu->BC.lo);
     return 8;
 }
-int rrc_e(CPU *cpu){
+int rrc_d(CPU *cpu){
     rrc(cpu, &cpu->DE.hi);
     return 8;
 }
+int rrc_e(CPU *cpu){
+    rrc(cpu, &cpu->DE.lo);
+    return 8;
+}
 int rrc_h(CPU *cpu){
-    rrc(cpu, &cpu->HL.lo);
+    rrc(cpu, &cpu->HL.hi);
     return 8;
 }
 int rrc_l(CPU *cpu){
-    rrc(cpu, &cpu->HL.hi);
+    rrc(cpu, &cpu->HL.lo);
     return 8;
 }
 
@@ -1856,55 +1849,55 @@ int rrc_hlp(CPU *cpu){
 int rra(CPU *cpu){
     int carry = is_C(cpu->AF) << 7;
 
-    if(cpu->AF.lo & 0x01) cpu->AF.hi |= (CARRY);
-    else cpu->AF.hi &= ~CARRY;
+    if(cpu->AF.hi & 0x01) cpu->AF.lo |= (CARRY);
+    else cpu->AF.lo &= ~CARRY;
 
-    cpu->AF.lo >>= 1;
-    cpu->AF.lo += carry;
+    cpu->AF.hi >>= 1;
+    cpu->AF.hi += carry;
 
-    cpu->AF.hi &= ~(OPER | ZERO | HALFC);
+    cpu->AF.lo &= ~(OPER | ZERO | HALFC);
     return 4;
 }
 
 void rr(CPU *cpu, BYTE *value) {
     int carry = is_C(cpu->AF) << 7;
 
-    if (*value & 0x01) cpu->AF.hi |= (CARRY);
-    else cpu->AF.hi &= ~CARRY;
+    if (*value & 0x01) cpu->AF.lo |= (CARRY);
+    else cpu->AF.lo &= ~CARRY;
 
     *value >>= 1;
     *value += carry;
 
-    cpu->AF.hi &= ~(OPER | ZERO | HALFC);
+    cpu->AF.lo &= ~(OPER | ZERO | HALFC);
 }
 
 int rr_a(CPU *cpu){
-    rr(cpu, &cpu->AF.lo);
+    rr(cpu, &cpu->AF.hi);
     return 8;
 }
 
 int rr_b(CPU *cpu){
-    rr(cpu, &cpu->BC.lo);
-    return 8;
-}
-int rr_c(CPU *cpu){
     rr(cpu, &cpu->BC.hi);
     return 8;
 }
-int rr_d(CPU *cpu){
-    rr(cpu, &cpu->DE.lo);
+int rr_c(CPU *cpu){
+    rr(cpu, &cpu->BC.lo);
     return 8;
 }
-int rr_e(CPU *cpu){
+int rr_d(CPU *cpu){
     rr(cpu, &cpu->DE.hi);
     return 8;
 }
+int rr_e(CPU *cpu){
+    rr(cpu, &cpu->DE.lo);
+    return 8;
+}
 int rr_h(CPU *cpu){
-    rr(cpu, &cpu->HL.lo);
+    rr(cpu, &cpu->HL.hi);
     return 8;
 }
 int rr_l(CPU *cpu){
-    rr(cpu, &cpu->HL.hi);
+    rr(cpu, &cpu->HL.lo);
     return 8;
 }
 
@@ -1918,46 +1911,46 @@ int rr_hlp(CPU *cpu){
 void rlc(CPU *cpu, BYTE *value) {
     int carry = (*value & 0x80) >> 7;
 
-    if(*value & 0x80) cpu->AF.hi |= (CARRY);
-    else cpu->AF.hi &= ~(CARRY);
+    if(*value & 0x80) cpu->AF.lo |= (CARRY);
+    else cpu->AF.lo &= ~(CARRY);
 
     *value <<= 1;
     *value += carry;
 
-    if(*value) cpu->AF.hi &= ~(ZERO);
-    else cpu->AF.hi |= (ZERO);
+    if(*value) cpu->AF.lo &= ~(ZERO);
+    else cpu->AF.lo |= (ZERO);
 
-    cpu->AF.hi &= ~(OPER | HALFC);
+    cpu->AF.lo &= ~(OPER | HALFC);
 
 }
 
 int rlc_a(CPU *cpu){
-    rlc(cpu, &cpu->AF.lo);
+    rlc(cpu, &cpu->AF.hi);
     return 8;
 }
 
 int rlc_b(CPU *cpu){
-    rlc(cpu, &cpu->BC.lo);
-    return 8;
-}
-int rlc_c(CPU *cpu){
     rlc(cpu, &cpu->BC.hi);
     return 8;
 }
-int rlc_d(CPU *cpu){
-    rlc(cpu, &cpu->DE.lo);
+int rlc_c(CPU *cpu){
+    rlc(cpu, &cpu->BC.lo);
     return 8;
 }
-int rlc_e(CPU *cpu){
+int rlc_d(CPU *cpu){
     rlc(cpu, &cpu->DE.hi);
     return 8;
 }
+int rlc_e(CPU *cpu){
+    rlc(cpu, &cpu->DE.lo);
+    return 8;
+}
 int rlc_h(CPU *cpu){
-    rlc(cpu, &cpu->HL.lo);
+    rlc(cpu, &cpu->HL.hi);
     return 8;
 }
 int rlc_l(CPU *cpu){
-    rlc(cpu, &cpu->HL.hi);
+    rlc(cpu, &cpu->HL.lo);
     return 8;
 }
 
@@ -1971,46 +1964,46 @@ int rlc_hlp(CPU *cpu){
 void rl(CPU *cpu, BYTE *value) {
     int carry = is_C(cpu->AF);
 
-    if(*value & 0x80) cpu->AF.hi |= (CARRY);
-    else cpu->AF.hi &= ~(CARRY);
+    if(*value & 0x80) cpu->AF.lo |= (CARRY);
+    else cpu->AF.lo &= ~(CARRY);
 
     *value <<= 1;
     *value += carry;
 
-    if(*value) cpu->AF.hi &= ~(ZERO);
-    else cpu->AF.hi |= (ZERO);
+    if(*value) cpu->AF.lo &= ~(ZERO);
+    else cpu->AF.lo |= (ZERO);
 
-    cpu->AF.hi &= ~(OPER | HALFC);
+    cpu->AF.lo &= ~(OPER | HALFC);
 
 }
 
 int rl_a(CPU *cpu){
-    rl(cpu, &cpu->AF.lo);
+    rl(cpu, &cpu->AF.hi);
     return 8;
 }
 
 int rl_b(CPU *cpu){
-    rl(cpu, &cpu->BC.lo);
-    return 8;
-}
-int rl_c(CPU *cpu){
     rl(cpu, &cpu->BC.hi);
     return 8;
 }
-int rl_d(CPU *cpu){
-    rl(cpu, &cpu->DE.lo);
+int rl_c(CPU *cpu){
+    rl(cpu, &cpu->BC.lo);
     return 8;
 }
-int rl_e(CPU *cpu){
+int rl_d(CPU *cpu){
     rl(cpu, &cpu->DE.hi);
     return 8;
 }
+int rl_e(CPU *cpu){
+    rl(cpu, &cpu->DE.lo);
+    return 8;
+}
 int rl_h(CPU *cpu){
-    rl(cpu, &cpu->HL.lo);
+    rl(cpu, &cpu->HL.hi);
     return 8;
 }
 int rl_l(CPU *cpu){
-    rl(cpu, &cpu->HL.hi);
+    rl(cpu, &cpu->HL.lo);
     return 8;
 }
 
@@ -2066,7 +2059,7 @@ int call_nz_nn(CPU *cpu){
     SHORT address = (read_byte(cpu->mmu, cpu->PC.val+1) << 8 | read_byte(cpu->mmu, cpu->PC.val));
     cpu->PC.val += 2;
     if(is_Z(cpu->AF)){
-
+		return 12;
     }else{
         _push(cpu, cpu->PC);
         cpu->PC.val = address;
@@ -2079,7 +2072,7 @@ int call_z_nn(CPU *cpu){
     SHORT address = (read_byte(cpu->mmu, cpu->PC.val+1) << 8 | read_byte(cpu->mmu, cpu->PC.val));
     cpu->PC.val += 2;
     if(!is_Z(cpu->AF)){
-
+        return 12;
     }else{
         _push(cpu, cpu->PC);
         cpu->PC.val = address;
@@ -2098,7 +2091,7 @@ int call_nc_nn(CPU *cpu){
     SHORT address = (read_byte(cpu->mmu, cpu->PC.val+1) << 8 | read_byte(cpu->mmu, cpu->PC.val));
     cpu->PC.val += 2;
     if(is_C(cpu->AF)){
-
+		return 12;
     }else{
         _push(cpu, cpu->PC);
         cpu->PC.val = address;
@@ -2111,7 +2104,7 @@ int call_c_nn(CPU *cpu){
     SHORT address = (read_byte(cpu->mmu, cpu->PC.val+1) << 8 | read_byte(cpu->mmu, cpu->PC.val));
     cpu->PC.val += 2;
     if(!is_C(cpu->AF)){
-
+		return 12;
     }else{
         _push(cpu, cpu->PC);
         cpu->PC.val = address;
@@ -2169,44 +2162,44 @@ int jr_z_n(CPU *cpu) {
 
 
 void sla(CPU *cpu, BYTE *value) {
-    if(*value & 0x80) cpu->AF.hi |= CARRY;
-    else cpu->AF.hi &= ~CARRY;
+    if(*value & 0x80) cpu->AF.lo |= CARRY;
+    else cpu->AF.lo &= ~CARRY;
 
     *value <<= 1;
 
-    if(*value) cpu->AF.hi &= ~ZERO;
-    else cpu->AF.hi |= (ZERO);
+    if(*value) cpu->AF.lo &= ~ZERO;
+    else cpu->AF.lo |= (ZERO);
 
-    cpu->AF.hi &= ~(OPER | HALFC);
+    cpu->AF.lo &= ~(OPER | HALFC);
 }
 
 int sla_a(CPU *cpu){
-    sla(cpu, &cpu->AF.lo);
+    sla(cpu, &cpu->AF.hi);
     return 8;
 }
 
 int sla_b(CPU *cpu){
-    sla(cpu, &cpu->BC.lo);
-    return 8;
-}
-int sla_c(CPU *cpu){
     sla(cpu, &cpu->BC.hi);
     return 8;
 }
-int sla_d(CPU *cpu){
-    sla(cpu, &cpu->DE.lo);
+int sla_c(CPU *cpu){
+    sla(cpu, &cpu->BC.lo);
     return 8;
 }
-int sla_e(CPU *cpu){
+int sla_d(CPU *cpu){
     sla(cpu, &cpu->DE.hi);
     return 8;
 }
+int sla_e(CPU *cpu){
+    sla(cpu, &cpu->DE.lo);
+    return 8;
+}
 int sla_h(CPU *cpu){
-    sla(cpu, &cpu->HL.lo);
+    sla(cpu, &cpu->HL.hi);
     return 8;
 }
 int sla_l(CPU *cpu){
-    sla(cpu, &cpu->HL.hi);
+    sla(cpu, &cpu->HL.lo);
     return 8;
 }
 
@@ -2219,44 +2212,44 @@ int sla_hlp(CPU *cpu){
 
 
 void sra(CPU *cpu, BYTE *value) {
-    if(*value & 0x01) cpu->AF.hi |= CARRY;
-    else cpu->AF.hi &= ~(CARRY);
+    if(*value & 0x01) cpu->AF.lo |= CARRY;
+    else cpu->AF.lo &= ~(CARRY);
 
     *value = (*value & 0x80) | (*value >> 1);
 
-    if(*value) cpu->AF.hi &= ~(ZERO);
-    else cpu->AF.hi |= ZERO;
+    if(*value) cpu->AF.lo &= ~(ZERO);
+    else cpu->AF.lo |= ZERO;
 
-    cpu->AF.hi &= ~(OPER | HALFC);
+    cpu->AF.lo &= ~(OPER | HALFC);
 }
 
 int sra_a(CPU *cpu){
-    sra(cpu, &cpu->AF.lo);
+    sra(cpu, &cpu->AF.hi);
     return 8;
 }
 
 int sra_b(CPU *cpu){
-    sra(cpu, &cpu->BC.lo);
-    return 8;
-}
-int sra_c(CPU *cpu){
     sra(cpu, &cpu->BC.hi);
     return 8;
 }
-int sra_d(CPU *cpu){
-    sra(cpu, &cpu->DE.lo);
+int sra_c(CPU *cpu){
+    sra(cpu, &cpu->BC.lo);
     return 8;
 }
-int sra_e(CPU *cpu){
+int sra_d(CPU *cpu){
     sra(cpu, &cpu->DE.hi);
     return 8;
 }
+int sra_e(CPU *cpu){
+    sra(cpu, &cpu->DE.lo);
+    return 8;
+}
 int sra_h(CPU *cpu){
-    sra(cpu, &cpu->HL.lo);
+    sra(cpu, &cpu->HL.hi);
     return 8;
 }
 int sra_l(CPU *cpu){
-    sra(cpu, &cpu->HL.hi);
+    sra(cpu, &cpu->HL.lo);
     return 8;
 }
 
@@ -2268,44 +2261,44 @@ int sra_hlp(CPU *cpu){
 }
 
 void srl(CPU *cpu, BYTE *value) {
-    if(*value & 0x01) cpu->AF.hi |= CARRY;
-    else cpu->AF.hi &= ~(CARRY);
+    if(*value & 0x01) cpu->AF.lo |= CARRY;
+    else cpu->AF.lo &= ~(CARRY);
 
     *value >>= 1;
 
-    if(*value) cpu->AF.hi &= ~(ZERO);
-    else cpu->AF.hi |= ZERO;
+    if(*value) cpu->AF.lo &= ~(ZERO);
+    else cpu->AF.lo |= ZERO;
 
-    cpu->AF.hi &= ~(OPER | HALFC);
+    cpu->AF.lo &= ~(OPER | HALFC);
 }
 
 int srl_a(CPU *cpu){
-    srl(cpu, &cpu->AF.lo);
+    srl(cpu, &cpu->AF.hi);
     return 8;
 }
 
 int srl_b(CPU *cpu){
-    srl(cpu, &cpu->BC.lo);
-    return 8;
-}
-int srl_c(CPU *cpu){
     srl(cpu, &cpu->BC.hi);
     return 8;
 }
-int srl_d(CPU *cpu){
-    srl(cpu, &cpu->DE.lo);
+int srl_c(CPU *cpu){
+    srl(cpu, &cpu->BC.lo);
     return 8;
 }
-int srl_e(CPU *cpu){
+int srl_d(CPU *cpu){
     srl(cpu, &cpu->DE.hi);
     return 8;
 }
+int srl_e(CPU *cpu){
+    srl(cpu, &cpu->DE.lo);
+    return 8;
+}
 int srl_h(CPU *cpu){
-    srl(cpu, &cpu->HL.lo);
+    srl(cpu, &cpu->HL.hi);
     return 8;
 }
 int srl_l(CPU *cpu){
-    srl(cpu, &cpu->HL.hi);
+    srl(cpu, &cpu->HL.lo);
     return 8;
 }
 
@@ -2318,40 +2311,40 @@ int srl_hlp(CPU *cpu){
 
 void bit(CPU *cpu, BYTE bit, BYTE *val) {
     BYTE value = *val;
-    if(value & bit) cpu->AF.hi &= ~ZERO;
-    else cpu->AF.hi |= ZERO;
+    if(value & bit) cpu->AF.lo &= ~ZERO;
+    else cpu->AF.lo |= ZERO;
 
-    cpu->AF.hi &= ~OPER;
-    cpu->AF.hi |= HALFC;
+    cpu->AF.lo &= ~OPER;
+    cpu->AF.lo |= HALFC;
 }
 
 int bit_0_a(CPU *cpu){
-    bit(cpu,0, &cpu->AF.lo);
+    bit(cpu,0, &cpu->AF.hi);
     return 8;
 }
 
 int bit_0_b(CPU *cpu){
-    bit(cpu,0,&cpu->BC.lo);
-    return 8;
-}
-int bit_0_c(CPU *cpu){
     bit(cpu,0,&cpu->BC.hi);
     return 8;
 }
-int bit_0_d(CPU *cpu){
-    bit(cpu,0,&cpu->DE.lo);
+int bit_0_c(CPU *cpu){
+    bit(cpu,0,&cpu->BC.lo);
     return 8;
 }
-int bit_0_e(CPU *cpu){
+int bit_0_d(CPU *cpu){
     bit(cpu,0,&cpu->DE.hi);
     return 8;
 }
+int bit_0_e(CPU *cpu){
+    bit(cpu,0,&cpu->DE.lo);
+    return 8;
+}
 int bit_0_h(CPU *cpu){
-    bit(cpu,0,&cpu->HL.lo);
+    bit(cpu,0,&cpu->HL.hi);
     return 8;
 }
 int bit_0_l(CPU *cpu){
-    bit(cpu,0,&cpu->HL.hi);
+    bit(cpu,0,&cpu->HL.lo);
     return 8;
 }
 
@@ -2363,32 +2356,32 @@ int bit_0_hlp(CPU *cpu){
 }
 
 int bit_1_a(CPU *cpu){
-    bit(cpu, 1, &cpu->AF.lo);
+    bit(cpu, 1, &cpu->AF.hi);
     return 8;
 }
 
 int bit_1_b(CPU *cpu){
-    bit(cpu, 1, &cpu->BC.lo);
-    return 8;
-}
-int bit_1_c(CPU *cpu){
     bit(cpu, 1, &cpu->BC.hi);
     return 8;
 }
-int bit_1_d(CPU *cpu){
-    bit(cpu, 1, &cpu->DE.lo);
+int bit_1_c(CPU *cpu){
+    bit(cpu, 1, &cpu->BC.lo);
     return 8;
 }
-int bit_1_e(CPU *cpu){
+int bit_1_d(CPU *cpu){
     bit(cpu, 1, &cpu->DE.hi);
     return 8;
 }
+int bit_1_e(CPU *cpu){
+    bit(cpu, 1, &cpu->DE.lo);
+    return 8;
+}
 int bit_1_h(CPU *cpu){
-    bit(cpu,1, &cpu->HL.lo);
+    bit(cpu,1, &cpu->HL.hi);
     return 8;
 }
 int bit_1_l(CPU *cpu){
-    bit(cpu, 1,&cpu->HL.hi);
+    bit(cpu, 1,&cpu->HL.lo);
     return 8;
 }
 
@@ -2400,32 +2393,32 @@ int bit_1_hlp(CPU *cpu){
 }
 
 int bit_2_a(CPU *cpu){
-    bit(cpu, 2, &cpu->AF.lo);
+    bit(cpu, 2, &cpu->AF.hi);
     return 8;
 }
 
 int bit_2_b(CPU *cpu){
-    bit(cpu, 2, &cpu->BC.lo);
-    return 8;
-}
-int bit_2_c(CPU *cpu){
     bit(cpu, 2, &cpu->BC.hi);
     return 8;
 }
-int bit_2_d(CPU *cpu){
-    bit(cpu, 2, &cpu->DE.lo);
+int bit_2_c(CPU *cpu){
+    bit(cpu, 2, &cpu->BC.lo);
     return 8;
 }
-int bit_2_e(CPU *cpu){
+int bit_2_d(CPU *cpu){
     bit(cpu, 2, &cpu->DE.hi);
     return 8;
 }
+int bit_2_e(CPU *cpu){
+    bit(cpu, 2, &cpu->DE.lo);
+    return 8;
+}
 int bit_2_h(CPU *cpu){
-    bit(cpu,2, &cpu->HL.lo);
+    bit(cpu,2, &cpu->HL.hi);
     return 8;
 }
 int bit_2_l(CPU *cpu){
-    bit(cpu, 2,&cpu->HL.hi);
+    bit(cpu, 2,&cpu->HL.lo);
     return 8;
 }
 
@@ -2437,32 +2430,32 @@ int bit_2_hlp(CPU *cpu){
 }
 
 int bit_3_a(CPU *cpu){
-    bit(cpu, 3, &cpu->AF.lo);
+    bit(cpu, 3, &cpu->AF.hi);
     return 8;
 }
 
 int bit_3_b(CPU *cpu){
-    bit(cpu, 3, &cpu->BC.lo);
-    return 8;
-}
-int bit_3_c(CPU *cpu){
     bit(cpu, 3, &cpu->BC.hi);
     return 8;
 }
-int bit_3_d(CPU *cpu){
-    bit(cpu, 3, &cpu->DE.lo);
+int bit_3_c(CPU *cpu){
+    bit(cpu, 3, &cpu->BC.lo);
     return 8;
 }
-int bit_3_e(CPU *cpu){
+int bit_3_d(CPU *cpu){
     bit(cpu, 3, &cpu->DE.hi);
     return 8;
 }
+int bit_3_e(CPU *cpu){
+    bit(cpu, 3, &cpu->DE.lo);
+    return 8;
+}
 int bit_3_h(CPU *cpu){
-    bit(cpu,3, &cpu->HL.lo);
+    bit(cpu,3, &cpu->HL.hi);
     return 8;
 }
 int bit_3_l(CPU *cpu){
-    bit(cpu, 3,&cpu->HL.hi);
+    bit(cpu, 3,&cpu->HL.lo);
     return 8;
 }
 
@@ -2474,32 +2467,32 @@ int bit_3_hlp(CPU *cpu){
 }
 
 int bit_4_a(CPU *cpu){
-    bit(cpu, 4, &cpu->AF.lo);
+    bit(cpu, 4, &cpu->AF.hi);
     return 8;
 }
 
 int bit_4_b(CPU *cpu){
-    bit(cpu, 4, &cpu->BC.lo);
-    return 8;
-}
-int bit_4_c(CPU *cpu){
     bit(cpu, 4, &cpu->BC.hi);
     return 8;
 }
-int bit_4_d(CPU *cpu){
-    bit(cpu, 4, &cpu->DE.lo);
+int bit_4_c(CPU *cpu){
+    bit(cpu, 4, &cpu->BC.lo);
     return 8;
 }
-int bit_4_e(CPU *cpu){
+int bit_4_d(CPU *cpu){
     bit(cpu, 4, &cpu->DE.hi);
     return 8;
 }
+int bit_4_e(CPU *cpu){
+    bit(cpu, 4, &cpu->DE.lo);
+    return 8;
+}
 int bit_4_h(CPU *cpu){
-    bit(cpu,4, &cpu->HL.lo);
+    bit(cpu,4, &cpu->HL.hi);
     return 8;
 }
 int bit_4_l(CPU *cpu){
-    bit(cpu, 4,&cpu->HL.hi);
+    bit(cpu, 4,&cpu->HL.lo);
     return 8;
 }
 
@@ -2511,32 +2504,32 @@ int bit_4_hlp(CPU *cpu){
 }
 
 int bit_5_a(CPU *cpu){
-    bit(cpu, 5, &cpu->AF.lo);
+    bit(cpu, 5, &cpu->AF.hi);
     return 8;
 }
 
 int bit_5_b(CPU *cpu){
-    bit(cpu, 5, &cpu->BC.lo);
-    return 8;
-}
-int bit_5_c(CPU *cpu){
     bit(cpu, 5, &cpu->BC.hi);
     return 8;
 }
-int bit_5_d(CPU *cpu){
-    bit(cpu, 5, &cpu->DE.lo);
+int bit_5_c(CPU *cpu){
+    bit(cpu, 5, &cpu->BC.lo);
     return 8;
 }
-int bit_5_e(CPU *cpu){
+int bit_5_d(CPU *cpu){
     bit(cpu, 5, &cpu->DE.hi);
     return 8;
 }
+int bit_5_e(CPU *cpu){
+    bit(cpu, 5, &cpu->DE.lo);
+    return 8;
+}
 int bit_5_h(CPU *cpu){
-    bit(cpu,5, &cpu->HL.lo);
+    bit(cpu,5, &cpu->HL.hi);
     return 8;
 }
 int bit_5_l(CPU *cpu){
-    bit(cpu, 5,&cpu->HL.hi);
+    bit(cpu, 5,&cpu->HL.lo);
     return 8;
 }
 
@@ -2548,32 +2541,32 @@ int bit_5_hlp(CPU *cpu){
 }
 
 int bit_6_a(CPU *cpu){
-    bit(cpu, 6, &cpu->AF.lo);
+    bit(cpu, 6, &cpu->AF.hi);
     return 8;
 }
 
 int bit_6_b(CPU *cpu){
-    bit(cpu, 6, &cpu->BC.lo);
-    return 8;
-}
-int bit_6_c(CPU *cpu){
     bit(cpu, 6, &cpu->BC.hi);
     return 8;
 }
-int bit_6_d(CPU *cpu){
-    bit(cpu, 6, &cpu->DE.lo);
+int bit_6_c(CPU *cpu){
+    bit(cpu, 6, &cpu->BC.lo);
     return 8;
 }
-int bit_6_e(CPU *cpu){
+int bit_6_d(CPU *cpu){
     bit(cpu, 6, &cpu->DE.hi);
     return 8;
 }
+int bit_6_e(CPU *cpu){
+    bit(cpu, 6, &cpu->DE.lo);
+    return 8;
+}
 int bit_6_h(CPU *cpu){
-    bit(cpu,6, &cpu->HL.lo);
+    bit(cpu,6, &cpu->HL.hi);
     return 8;
 }
 int bit_6_l(CPU *cpu){
-    bit(cpu, 6,&cpu->HL.hi);
+    bit(cpu, 6,&cpu->HL.lo);
     return 8;
 }
 
@@ -2585,32 +2578,32 @@ int bit_6_hlp(CPU *cpu){
 }
 
 int bit_7_a(CPU *cpu){
-    bit(cpu, 7, &cpu->AF.lo);
+    bit(cpu, 7, &cpu->AF.hi);
     return 8;
 }
 
 int bit_7_b(CPU *cpu){
-    bit(cpu, 7, &cpu->BC.lo);
-    return 8;
-}
-int bit_7_c(CPU *cpu){
     bit(cpu, 7, &cpu->BC.hi);
     return 8;
 }
-int bit_7_d(CPU *cpu){
-    bit(cpu, 7, &cpu->DE.lo);
+int bit_7_c(CPU *cpu){
+    bit(cpu, 7, &cpu->BC.lo);
     return 8;
 }
-int bit_7_e(CPU *cpu){
+int bit_7_d(CPU *cpu){
     bit(cpu, 7, &cpu->DE.hi);
     return 8;
 }
+int bit_7_e(CPU *cpu){
+    bit(cpu, 7, &cpu->DE.lo);
+    return 8;
+}
 int bit_7_h(CPU *cpu){
-    bit(cpu,7, &cpu->HL.lo);
+    bit(cpu,7, &cpu->HL.hi);
     return 8;
 }
 int bit_7_l(CPU *cpu){
-    bit(cpu, 7,&cpu->HL.hi);
+    bit(cpu, 7,&cpu->HL.lo);
     return 8;
 }
 
@@ -2626,32 +2619,32 @@ void res(CPU *cpu, BYTE res, BYTE *val) {
 }
 
 int res_0_a(CPU *cpu){
-    res(cpu,0,&cpu->AF.lo);
+    res(cpu,0,&cpu->AF.hi);
     return 8;
 }
 
 int res_0_b(CPU *cpu){
-    res(cpu,0,&cpu->BC.lo);
-    return 8;
-}
-int res_0_c(CPU *cpu){
     res(cpu,0,&cpu->BC.hi);
     return 8;
 }
-int res_0_d(CPU *cpu){
-    res(cpu,0,&cpu->DE.lo);
+int res_0_c(CPU *cpu){
+    res(cpu,0,&cpu->BC.lo);
     return 8;
 }
-int res_0_e(CPU *cpu){
+int res_0_d(CPU *cpu){
     res(cpu,0,&cpu->DE.hi);
     return 8;
 }
+int res_0_e(CPU *cpu){
+    res(cpu,0,&cpu->DE.lo);
+    return 8;
+}
 int res_0_h(CPU *cpu){
-    res(cpu,0,&cpu->HL.lo);
+    res(cpu,0,&cpu->HL.hi);
     return 8;
 }
 int res_0_l(CPU *cpu){
-    res(cpu,0,&cpu->HL.hi);
+    res(cpu,0,&cpu->HL.lo);
     return 8;
 }
 
@@ -2663,32 +2656,32 @@ int res_0_hlp(CPU *cpu){
 }
 
 int res_1_a(CPU *cpu){
-    res(cpu, 1, &cpu->AF.lo);
+    res(cpu, 1, &cpu->AF.hi);
     return 8;
 }
 
 int res_1_b(CPU *cpu){
-    res(cpu, 1, &cpu->BC.lo);
-    return 8;
-}
-int res_1_c(CPU *cpu){
     res(cpu, 1, &cpu->BC.hi);
     return 8;
 }
-int res_1_d(CPU *cpu){
-    res(cpu, 1, &cpu->DE.lo);
+int res_1_c(CPU *cpu){
+    res(cpu, 1, &cpu->BC.lo);
     return 8;
 }
-int res_1_e(CPU *cpu){
+int res_1_d(CPU *cpu){
     res(cpu, 1, &cpu->DE.hi);
     return 8;
 }
+int res_1_e(CPU *cpu){
+    res(cpu, 1, &cpu->DE.lo);
+    return 8;
+}
 int res_1_h(CPU *cpu){
-    res(cpu,1, &cpu->HL.lo);
+    res(cpu,1, &cpu->HL.hi);
     return 8;
 }
 int res_1_l(CPU *cpu){
-    res(cpu, 1,&cpu->HL.hi);
+    res(cpu, 1,&cpu->HL.lo);
     return 8;
 }
 
@@ -2700,32 +2693,32 @@ int res_1_hlp(CPU *cpu){
 }
 
 int res_2_a(CPU *cpu){
-    res(cpu, 2, &cpu->AF.lo);
+    res(cpu, 2, &cpu->AF.hi);
     return 8;
 }
 
 int res_2_b(CPU *cpu){
-    res(cpu, 2, &cpu->BC.lo);
-    return 8;
-}
-int res_2_c(CPU *cpu){
     res(cpu, 2, &cpu->BC.hi);
     return 8;
 }
-int res_2_d(CPU *cpu){
-    res(cpu, 2, &cpu->DE.lo);
+int res_2_c(CPU *cpu){
+    res(cpu, 2, &cpu->BC.lo);
     return 8;
 }
-int res_2_e(CPU *cpu){
+int res_2_d(CPU *cpu){
     res(cpu, 2, &cpu->DE.hi);
     return 8;
 }
+int res_2_e(CPU *cpu){
+    res(cpu, 2, &cpu->DE.lo);
+    return 8;
+}
 int res_2_h(CPU *cpu){
-    res(cpu,2, &cpu->HL.lo);
+    res(cpu,2, &cpu->HL.hi);
     return 8;
 }
 int res_2_l(CPU *cpu){
-    res(cpu, 2,&cpu->HL.hi);
+    res(cpu, 2,&cpu->HL.lo);
     return 8;
 }
 
@@ -2737,32 +2730,32 @@ int res_2_hlp(CPU *cpu){
 }
 
 int res_3_a(CPU *cpu){
-    res(cpu, 3, &cpu->AF.lo);
+    res(cpu, 3, &cpu->AF.hi);
     return 8;
 }
 
 int res_3_b(CPU *cpu){
-    res(cpu, 3, &cpu->BC.lo);
-    return 8;
-}
-int res_3_c(CPU *cpu){
     res(cpu, 3, &cpu->BC.hi);
     return 8;
 }
-int res_3_d(CPU *cpu){
-    res(cpu, 3, &cpu->DE.lo);
+int res_3_c(CPU *cpu){
+    res(cpu, 3, &cpu->BC.lo);
     return 8;
 }
-int res_3_e(CPU *cpu){
+int res_3_d(CPU *cpu){
     res(cpu, 3, &cpu->DE.hi);
     return 8;
 }
+int res_3_e(CPU *cpu){
+    res(cpu, 3, &cpu->DE.lo);
+    return 8;
+}
 int res_3_h(CPU *cpu){
-    res(cpu,3, &cpu->HL.lo);
+    res(cpu,3, &cpu->HL.hi);
     return 8;
 }
 int res_3_l(CPU *cpu){
-    res(cpu, 3,&cpu->HL.hi);
+    res(cpu, 3,&cpu->HL.lo);
     return 8;
 }
 
@@ -2774,32 +2767,32 @@ int res_3_hlp(CPU *cpu){
 }
 
 int res_4_a(CPU *cpu){
-    res(cpu, 4, &cpu->AF.lo);
+    res(cpu, 4, &cpu->AF.hi);
     return 8;
 }
 
 int res_4_b(CPU *cpu){
-    res(cpu, 4, &cpu->BC.lo);
-    return 8;
-}
-int res_4_c(CPU *cpu){
     res(cpu, 4, &cpu->BC.hi);
     return 8;
 }
-int res_4_d(CPU *cpu){
-    res(cpu, 4, &cpu->DE.lo);
+int res_4_c(CPU *cpu){
+    res(cpu, 4, &cpu->BC.lo);
     return 8;
 }
-int res_4_e(CPU *cpu){
+int res_4_d(CPU *cpu){
     res(cpu, 4, &cpu->DE.hi);
     return 8;
 }
+int res_4_e(CPU *cpu){
+    res(cpu, 4, &cpu->DE.lo);
+    return 8;
+}
 int res_4_h(CPU *cpu){
-    res(cpu,4, &cpu->HL.lo);
+    res(cpu,4, &cpu->HL.hi);
     return 8;
 }
 int res_4_l(CPU *cpu){
-    res(cpu, 4,&cpu->HL.hi);
+    res(cpu, 4,&cpu->HL.lo);
     return 8;
 }
 
@@ -2811,32 +2804,32 @@ int res_4_hlp(CPU *cpu){
 }
 
 int res_5_a(CPU *cpu){
-    res(cpu, 5, &cpu->AF.lo);
+    res(cpu, 5, &cpu->AF.hi);
     return 8;
 }
 
 int res_5_b(CPU *cpu){
-    res(cpu, 5, &cpu->BC.lo);
-    return 8;
-}
-int res_5_c(CPU *cpu){
     res(cpu, 5, &cpu->BC.hi);
     return 8;
 }
-int res_5_d(CPU *cpu){
-    res(cpu, 5, &cpu->DE.lo);
+int res_5_c(CPU *cpu){
+    res(cpu, 5, &cpu->BC.lo);
     return 8;
 }
-int res_5_e(CPU *cpu){
+int res_5_d(CPU *cpu){
     res(cpu, 5, &cpu->DE.hi);
     return 8;
 }
+int res_5_e(CPU *cpu){
+    res(cpu, 5, &cpu->DE.lo);
+    return 8;
+}
 int res_5_h(CPU *cpu){
-    res(cpu,5, &cpu->HL.lo);
+    res(cpu,5, &cpu->HL.hi);
     return 8;
 }
 int res_5_l(CPU *cpu){
-    res(cpu, 5,&cpu->HL.hi);
+    res(cpu, 5,&cpu->HL.lo);
     return 8;
 }
 
@@ -2848,32 +2841,32 @@ int res_5_hlp(CPU *cpu){
 }
 
 int res_6_a(CPU *cpu){
-    res(cpu, 6, &cpu->AF.lo);
+    res(cpu, 6, &cpu->AF.hi);
     return 8;
 }
 
 int res_6_b(CPU *cpu){
-    res(cpu, 6, &cpu->BC.lo);
-    return 8;
-}
-int res_6_c(CPU *cpu){
     res(cpu, 6, &cpu->BC.hi);
     return 8;
 }
-int res_6_d(CPU *cpu){
-    res(cpu, 6, &cpu->DE.lo);
+int res_6_c(CPU *cpu){
+    res(cpu, 6, &cpu->BC.lo);
     return 8;
 }
-int res_6_e(CPU *cpu){
+int res_6_d(CPU *cpu){
     res(cpu, 6, &cpu->DE.hi);
     return 8;
 }
+int res_6_e(CPU *cpu){
+    res(cpu, 6, &cpu->DE.lo);
+    return 8;
+}
 int res_6_h(CPU *cpu){
-    res(cpu,6, &cpu->HL.lo);
+    res(cpu,6, &cpu->HL.hi);
     return 8;
 }
 int res_6_l(CPU *cpu){
-    res(cpu, 6,&cpu->HL.hi);
+    res(cpu, 6,&cpu->HL.lo);
     return 8;
 }
 
@@ -2885,32 +2878,32 @@ int res_6_hlp(CPU *cpu){
 }
 
 int res_7_a(CPU *cpu){
-    res(cpu, 7, &cpu->AF.lo);
+    res(cpu, 7, &cpu->AF.hi);
     return 8;
 }
 
 int res_7_b(CPU *cpu){
-    res(cpu, 7, &cpu->BC.lo);
-    return 8;
-}
-int res_7_c(CPU *cpu){
     res(cpu, 7, &cpu->BC.hi);
     return 8;
 }
-int res_7_d(CPU *cpu){
-    res(cpu, 7, &cpu->DE.lo);
+int res_7_c(CPU *cpu){
+    res(cpu, 7, &cpu->BC.lo);
     return 8;
 }
-int res_7_e(CPU *cpu){
+int res_7_d(CPU *cpu){
     res(cpu, 7, &cpu->DE.hi);
     return 8;
 }
+int res_7_e(CPU *cpu){
+    res(cpu, 7, &cpu->DE.lo);
+    return 8;
+}
 int res_7_h(CPU *cpu){
-    res(cpu,7, &cpu->HL.lo);
+    res(cpu,7, &cpu->HL.hi);
     return 8;
 }
 int res_7_l(CPU *cpu){
-    res(cpu, 7,&cpu->HL.hi);
+    res(cpu, 7,&cpu->HL.lo);
     return 8;
 }
 
@@ -2926,32 +2919,32 @@ void set(CPU *cpu, BYTE set, BYTE *val) {
 }
 
 int set_0_a(CPU *cpu){
-    set(cpu,0,&cpu->AF.lo);
+    set(cpu,0,&cpu->AF.hi);
     return 8;
 }
 
 int set_0_b(CPU *cpu){
-    set(cpu,0,&cpu->BC.lo);
-    return 8;
-}
-int set_0_c(CPU *cpu){
     set(cpu,0,&cpu->BC.hi);
     return 8;
 }
-int set_0_d(CPU *cpu){
-    set(cpu,0,&cpu->DE.lo);
+int set_0_c(CPU *cpu){
+    set(cpu,0,&cpu->BC.lo);
     return 8;
 }
-int set_0_e(CPU *cpu){
+int set_0_d(CPU *cpu){
     set(cpu,0,&cpu->DE.hi);
     return 8;
 }
+int set_0_e(CPU *cpu){
+    set(cpu,0,&cpu->DE.lo);
+    return 8;
+}
 int set_0_h(CPU *cpu){
-    set(cpu,0,&cpu->HL.lo);
+    set(cpu,0,&cpu->HL.hi);
     return 8;
 }
 int set_0_l(CPU *cpu){
-    set(cpu,0,&cpu->HL.hi);
+    set(cpu,0,&cpu->HL.lo);
     return 8;
 }
 
@@ -2963,32 +2956,32 @@ int set_0_hlp(CPU *cpu){
 }
 
 int set_1_a(CPU *cpu){
-    set(cpu, 1, &cpu->AF.lo);
+    set(cpu, 1, &cpu->AF.hi);
     return 8;
 }
 
 int set_1_b(CPU *cpu){
-    set(cpu, 1, &cpu->BC.lo);
-    return 8;
-}
-int set_1_c(CPU *cpu){
     set(cpu, 1, &cpu->BC.hi);
     return 8;
 }
-int set_1_d(CPU *cpu){
-    set(cpu, 1, &cpu->DE.lo);
+int set_1_c(CPU *cpu){
+    set(cpu, 1, &cpu->BC.lo);
     return 8;
 }
-int set_1_e(CPU *cpu){
+int set_1_d(CPU *cpu){
     set(cpu, 1, &cpu->DE.hi);
     return 8;
 }
+int set_1_e(CPU *cpu){
+    set(cpu, 1, &cpu->DE.lo);
+    return 8;
+}
 int set_1_h(CPU *cpu){
-    set(cpu,1, &cpu->HL.lo);
+    set(cpu,1, &cpu->HL.hi);
     return 8;
 }
 int set_1_l(CPU *cpu){
-    set(cpu, 1,&cpu->HL.hi);
+    set(cpu, 1,&cpu->HL.lo);
     return 8;
 }
 
@@ -3000,32 +2993,32 @@ int set_1_hlp(CPU *cpu){
 }
 
 int set_2_a(CPU *cpu){
-    set(cpu, 2, &cpu->AF.lo);
+    set(cpu, 2, &cpu->AF.hi);
     return 8;
 }
 
 int set_2_b(CPU *cpu){
-    set(cpu, 2, &cpu->BC.lo);
-    return 8;
-}
-int set_2_c(CPU *cpu){
     set(cpu, 2, &cpu->BC.hi);
     return 8;
 }
-int set_2_d(CPU *cpu){
-    set(cpu, 2, &cpu->DE.lo);
+int set_2_c(CPU *cpu){
+    set(cpu, 2, &cpu->BC.lo);
     return 8;
 }
-int set_2_e(CPU *cpu){
+int set_2_d(CPU *cpu){
     set(cpu, 2, &cpu->DE.hi);
     return 8;
 }
+int set_2_e(CPU *cpu){
+    set(cpu, 2, &cpu->DE.lo);
+    return 8;
+}
 int set_2_h(CPU *cpu){
-    set(cpu,2, &cpu->HL.lo);
+    set(cpu,2, &cpu->HL.hi);
     return 8;
 }
 int set_2_l(CPU *cpu){
-    set(cpu, 2,&cpu->HL.hi);
+    set(cpu, 2,&cpu->HL.lo);
     return 8;
 }
 
@@ -3037,32 +3030,32 @@ int set_2_hlp(CPU *cpu){
 }
 
 int set_3_a(CPU *cpu){
-    set(cpu, 3, &cpu->AF.lo);
+    set(cpu, 3, &cpu->AF.hi);
     return 8;
 }
 
 int set_3_b(CPU *cpu){
-    set(cpu, 3, &cpu->BC.lo);
-    return 8;
-}
-int set_3_c(CPU *cpu){
     set(cpu, 3, &cpu->BC.hi);
     return 8;
 }
-int set_3_d(CPU *cpu){
-    set(cpu, 3, &cpu->DE.lo);
+int set_3_c(CPU *cpu){
+    set(cpu, 3, &cpu->BC.lo);
     return 8;
 }
-int set_3_e(CPU *cpu){
+int set_3_d(CPU *cpu){
     set(cpu, 3, &cpu->DE.hi);
     return 8;
 }
+int set_3_e(CPU *cpu){
+    set(cpu, 3, &cpu->DE.lo);
+    return 8;
+}
 int set_3_h(CPU *cpu){
-    set(cpu,3, &cpu->HL.lo);
+    set(cpu,3, &cpu->HL.hi);
     return 8;
 }
 int set_3_l(CPU *cpu){
-    set(cpu, 3,&cpu->HL.hi);
+    set(cpu, 3,&cpu->HL.lo);
     return 8;
 }
 
@@ -3074,32 +3067,32 @@ int set_3_hlp(CPU *cpu){
 }
 
 int set_4_a(CPU *cpu){
-    set(cpu, 4, &cpu->AF.lo);
+    set(cpu, 4, &cpu->AF.hi);
     return 8;
 }
 
 int set_4_b(CPU *cpu){
-    set(cpu, 4, &cpu->BC.lo);
-    return 8;
-}
-int set_4_c(CPU *cpu){
     set(cpu, 4, &cpu->BC.hi);
     return 8;
 }
-int set_4_d(CPU *cpu){
-    set(cpu, 4, &cpu->DE.lo);
+int set_4_c(CPU *cpu){
+    set(cpu, 4, &cpu->BC.lo);
     return 8;
 }
-int set_4_e(CPU *cpu){
+int set_4_d(CPU *cpu){
     set(cpu, 4, &cpu->DE.hi);
     return 8;
 }
+int set_4_e(CPU *cpu){
+    set(cpu, 4, &cpu->DE.lo);
+    return 8;
+}
 int set_4_h(CPU *cpu){
-    set(cpu,4, &cpu->HL.lo);
+    set(cpu,4, &cpu->HL.hi);
     return 8;
 }
 int set_4_l(CPU *cpu){
-    set(cpu, 4,&cpu->HL.hi);
+    set(cpu, 4,&cpu->HL.lo);
     return 8;
 }
 
@@ -3111,32 +3104,32 @@ int set_4_hlp(CPU *cpu){
 }
 
 int set_5_a(CPU *cpu){
-    set(cpu, 5, &cpu->AF.lo);
+    set(cpu, 5, &cpu->AF.hi);
     return 8;
 }
 
 int set_5_b(CPU *cpu){
-    set(cpu, 5, &cpu->BC.lo);
-    return 8;
-}
-int set_5_c(CPU *cpu){
     set(cpu, 5, &cpu->BC.hi);
     return 8;
 }
-int set_5_d(CPU *cpu){
-    set(cpu, 5, &cpu->DE.lo);
+int set_5_c(CPU *cpu){
+    set(cpu, 5, &cpu->BC.lo);
     return 8;
 }
-int set_5_e(CPU *cpu){
+int set_5_d(CPU *cpu){
     set(cpu, 5, &cpu->DE.hi);
     return 8;
 }
+int set_5_e(CPU *cpu){
+    set(cpu, 5, &cpu->DE.lo);
+    return 8;
+}
 int set_5_h(CPU *cpu){
-    set(cpu,5, &cpu->HL.lo);
+    set(cpu,5, &cpu->HL.hi);
     return 8;
 }
 int set_5_l(CPU *cpu){
-    set(cpu, 5,&cpu->HL.hi);
+    set(cpu, 5,&cpu->HL.lo);
     return 8;
 }
 
@@ -3148,32 +3141,32 @@ int set_5_hlp(CPU *cpu){
 }
 
 int set_6_a(CPU *cpu){
-    set(cpu, 6, &cpu->AF.lo);
+    set(cpu, 6, &cpu->AF.hi);
     return 8;
 }
 
 int set_6_b(CPU *cpu){
-    set(cpu, 6, &cpu->BC.lo);
-    return 8;
-}
-int set_6_c(CPU *cpu){
     set(cpu, 6, &cpu->BC.hi);
     return 8;
 }
-int set_6_d(CPU *cpu){
-    set(cpu, 6, &cpu->DE.lo);
+int set_6_c(CPU *cpu){
+    set(cpu, 6, &cpu->BC.lo);
     return 8;
 }
-int set_6_e(CPU *cpu){
+int set_6_d(CPU *cpu){
     set(cpu, 6, &cpu->DE.hi);
     return 8;
 }
+int set_6_e(CPU *cpu){
+    set(cpu, 6, &cpu->DE.lo);
+    return 8;
+}
 int set_6_h(CPU *cpu){
-    set(cpu,6, &cpu->HL.lo);
+    set(cpu,6, &cpu->HL.hi);
     return 8;
 }
 int set_6_l(CPU *cpu){
-    set(cpu, 6,&cpu->HL.hi);
+    set(cpu, 6,&cpu->HL.lo);
     return 8;
 }
 
@@ -3185,32 +3178,32 @@ int set_6_hlp(CPU *cpu){
 }
 
 int set_7_a(CPU *cpu){
-    set(cpu, 7, &cpu->AF.lo);
+    set(cpu, 7, &cpu->AF.hi);
     return 8;
 }
 
 int set_7_b(CPU *cpu){
-    set(cpu, 7, &cpu->BC.lo);
-    return 8;
-}
-int set_7_c(CPU *cpu){
     set(cpu, 7, &cpu->BC.hi);
     return 8;
 }
-int set_7_d(CPU *cpu){
-    set(cpu, 7, &cpu->DE.lo);
+int set_7_c(CPU *cpu){
+    set(cpu, 7, &cpu->BC.lo);
     return 8;
 }
-int set_7_e(CPU *cpu){
+int set_7_d(CPU *cpu){
     set(cpu, 7, &cpu->DE.hi);
     return 8;
 }
+int set_7_e(CPU *cpu){
+    set(cpu, 7, &cpu->DE.lo);
+    return 8;
+}
 int set_7_h(CPU *cpu){
-    set(cpu,7, &cpu->HL.lo);
+    set(cpu,7, &cpu->HL.hi);
     return 8;
 }
 int set_7_l(CPU *cpu){
-    set(cpu, 7,&cpu->HL.hi);
+    set(cpu, 7,&cpu->HL.lo);
     return 8;
 }
 

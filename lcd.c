@@ -2,9 +2,6 @@
 #include <string.h>
 #include <SDL2/SDL.h>
 
-#define GL3_PROTOTYES 1
-#include <GL/glew.h>
-
 #include "lcd.h"
 #include "mmu.h"
 #include "interrupts.h"
@@ -35,32 +32,12 @@ void draw_screen(LCD *lcd){
     printf("\n");
 }
 
-/*void init_gl(){
-    glViewport(0, 0, windowWidth, windowHeight);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glOrtho(0, windowWidth, windowHeight, 0, -1.0, 1.0);
-    glClearColor(0, 0, 0, 1.0);
-//    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    glShadeModel(GL_FLAT);
-
-    glEnable(GL_TEXTURE_2D);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DITHER);
-    glDisable(GL_BLEND);
-    /*SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClearDepth(1.0f);*/
-	//SDL_GL_SwapWindow(window);
-//}
 
 int reset_screen(LCD *lcd){
     memset(lcd->screen,0xFF, 3 * windowWidth * windowHeight);
 }
 
 int init_screen(LCD *lcd) {
-//    lcd->screen = (COLOR *)malloc(windowWidth * windowHeight  *3 * sizeof(COLOR));
     memset(lcd->screen, 0xFF, 3* windowWidth * windowHeight);
     lcd->status = 0;
     lcd->sc_l = 0;
@@ -75,9 +52,6 @@ int init_screen(LCD *lcd) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         return 0;
     }
-    /*if (SDL_SetVideoMode(windowWidth, windowHeight, 8, SDL_OPENGL) == NULL) {
-        return 0;
-    }*/
    	window = SDL_CreateWindow("My Game",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,windowWidth, windowHeight, SDL_WINDOW_SHOWN);
 
 	if(!window){
@@ -89,34 +63,21 @@ int init_screen(LCD *lcd) {
 
 	SDL_UpdateWindowSurface(window);	
 
-	/*SDL_GLContext glcontext = SDL_GL_CreateContext(lcd->window);
-	
-	if(!glcontext){
-    	return 0;
-	}
-
-    init_gl(lcd->window);
-	//SDL_WM_SetCaption("My Game", NULL);
-*/    
 	return 1;
 }
 
 void Render_Screen(FILE *fp, LCD *lcd){
     
 	int *pixels = (int*)screenSurface->pixels;	
-//	memset(pixels, 0, screenSurface->h * screenSurface->pitch);
-    for(int x = 0; x < windowWidth; x++){
+
+	for(int x = 0; x < windowWidth; x++){
         for(int y = 0; y < windowHeight; y++){
             pixels[x + (y * windowWidth)] |= 0xff000000;
             pixels[x + (y * windowWidth)] |= lcd->screen[x][y][0] << 16;
             pixels[x + (y * windowWidth)] |= lcd->screen[x][y][1] << 8;
             pixels[x + (y * windowWidth)] |= lcd->screen[x][y][2];
-            //pixels[x + (y * windowWidth) + 1] = 255;
-            //pixels[x + (y * windowWidth) + 2] = 0;
-            //pixels[x + (y * windowWidth) + 3] = 0xff;
         }
     }
-//    memcpy(screenSurface->pixels, pixels, screenSurface->pitch * screenSurface->h);
     SDL_UpdateWindowSurface(window);
 }
 
@@ -199,7 +160,6 @@ void UpdateGraphics(void *mmu, int cycles){
     	}else if (lcd->sc_l > 153){
         	lcd->sc_l = 0;
     	}else if (lcd->sc_l < 144){
-    //    	printf("Here\n");
         	DrawScanLine(mmu);
     	}
 	}
