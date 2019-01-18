@@ -1,4 +1,5 @@
 #include "mmu.h"
+//#include "cpu.h"
 #include "interrupts.h"
 #include "joypad.h"
 #include "timer.h"
@@ -270,16 +271,16 @@ void rom_bank_handler(MMU *mmu, SHORT address, BYTE value){
    	}	
 }
 
-void _push(void *cpu, register_u X){
-    ((CPU*)cpu)->SP.val-= 2;
-    write_byte(((CPU*)cpu)->mmu, ((CPU*)cpu)->SP.val, X.lo);
-    write_byte(((CPU*)cpu)->mmu, (SHORT)(((CPU*)cpu)->SP.val+1), X.hi);
+void _push(CPU *cpu, register_u X){
+    cpu->SP.val-= 2;
+    write_byte(cpu->mmu, cpu->SP.val, X.lo);
+    write_byte(cpu->mmu, (SHORT)(cpu->SP.val+1), X.hi);
 }
 
-SHORT _pop(void *cpu){
-    SHORT valu = read_byte(((CPU*)cpu)->mmu, ((CPU*)cpu)->SP.val);
-    valu |= read_byte(((CPU*)cpu)->mmu, ((CPU*)cpu)->SP.val+1) << 8;
-    ((CPU*)cpu)->SP.val += 2;
+SHORT _pop(CPU *cpu){
+    SHORT valu = read_byte(cpu->mmu, cpu->SP.val);
+    valu |= read_byte(cpu->mmu, cpu->SP.val+1) << 8;
+    cpu->SP.val += 2;
     return valu;
 }
 

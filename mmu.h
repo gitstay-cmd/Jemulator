@@ -3,6 +3,7 @@
 
 #include "includes.h"
 #include "lcd.h"
+#include "cpu.h"
 #include "timer.h"
 #include "joypad.h"
 #include "registers.h"
@@ -36,12 +37,12 @@ typedef struct mmu_S{
     joypad *joy;
     TIMER *timer;
     LCD *lcd;
-} MMU;
+}MMU;
 
 suc_t write_byte(MMU *mmu, SHORT address, BYTE value);
 BYTE read_byte(MMU *mmu, SHORT address);
 MMU *mmu_init(char *filename);
-void _push(void *cpu, register_u X);
-SHORT _pop(void *cpu);
+void _push(CPU *cpu, register_u X);
+SHORT _pop(CPU *cpu);
 #endif // mmu_h_INCLUDED
 

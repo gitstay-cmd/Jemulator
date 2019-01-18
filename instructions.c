@@ -14,7 +14,7 @@ int execute_opcode(FILE *fp, CPU *cpu){
     cpu->PC.val += 1;
     int cycles = instructions[opc].funct(cpu);
 	if(!strcmp(instructions[opc].instruction, "UNKNOWN")){
-		fprintf(fp, "Unkown instruction: %x\n PC: %x\n", opc, cpu->PC.val -= 1);
+		fprintf(fp, "Unkown instruction: %x\n PC: %x\n", opc, (cpu->PC.val - 1));
 		exit(0);
     }else {
         fprintf(fp, "Opcode: 0x%x, Instruction: %s Scanline: %x Cycles: %x\n",opc, instructions[opc].instruction, cpu->mmu->lcd->sc_l, cycles);

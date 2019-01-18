@@ -35,6 +35,7 @@ void draw_screen(LCD *lcd){
 
 int reset_screen(LCD *lcd){
     memset(lcd->screen,0xFF, 3 * windowWidth * windowHeight);
+    return 0;
 }
 
 int init_screen(LCD *lcd) {

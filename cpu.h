@@ -3,10 +3,9 @@
 
 #include "includes.h"
 #include "registers.h"
-#include "mmu.h"
-
 #include <stdio.h>
 
+typedef struct mmu_S MMU;
 typedef struct cpu_S {
     BYTE halted;
     MMU *mmu;
